@@ -146,8 +146,8 @@ echo "Step 9: Deploying AccessAddr contract..."
 access_output=$(forge create --broadcast \
   --rpc-url $ETH_RPC_URL \
   --private-key $priv1 \
-  --constructor-args $verifier \
-  contracts/AccessAddr.sol:AccessAddr 2>&1)
+  contracts/AccessAddr.sol:AccessAddr \
+  --constructor-args $verifier 2>&1)
 
 access=$(echo "$access_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$access" ]; then
