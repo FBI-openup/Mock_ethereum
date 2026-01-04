@@ -31,22 +31,61 @@ SECRET=$(cast keccak "$(openssl rand -hex 32)")
 echo "SECRET: $SECRET"
 echo ""
 
-echo "Step 4: Testing Zokrates..."
+echo "Step 4: Converting address to u32 array..."
+addr_u32=$(python3 << EOF
+addr = "$addr1"
+addr_int = int(addr, 16)
+B = 2**32
+result = []
+for i in range(8):
+    result.append(str(addr_int % B))
+    addr_int = addr_int // B
+print(" ".join(result))
+EOF
+)
+echo "Address as u32[8]: $addr_u32"
+echo ""
+
+echo "Step 5: Testing Zokrates..."
 cd zokrates
-sed -i "s/SECRET = CHANGE_ME/SECRET = $SECRET/" Makefile
-echo "Running make compute..."
-make compute
+echo "Compiling ComputePwdAddr..."
+zokrates compile -i ComputePwdAddr.zok -o compute.out
 if [ $? -ne 0 ]; then
-  echo "ERROR: make compute failed"
+  echo "ERROR: zokrates compile failed"
+  exit 1
+fi
+echo "✓ Compile successful"
+echo ""
+
+echo "Computing witness..."
+zokrates compute-witness -i compute.out -a $addr_u32 $SECRET --verbose
+if [ $? -ne 0 ]; then
+  echo "ERROR: compute-witness failed"
   exit 1
 fi
 echo "✓ Compute successful"
 echo ""
 
-echo "Running make verify..."
-make verify
+echo "Compiling VerifyPwdAddr..."
+zokrates compile -i VerifyPwdAddr.zok -o verify.out
 if [ $? -ne 0 ]; then
-  echo "ERROR: make verify failed"
+  echo "ERROR: verify compile failed"
+  exit 1
+fi
+echo ""
+
+echo "Setting up proving scheme..."
+zokrates setup -i verify.out
+if [ $? -ne 0 ]; then
+  echo "ERROR: setup failed"
+  exit 1
+fi
+echo ""
+
+echo "Exporting verifier..."
+zokrates export-verifier
+if [ $? -ne 0 ]; then
+  echo "ERROR: export-verifier failed"
   exit 1
 fi
 echo "✓ Verify successful"
@@ -59,12 +98,12 @@ fi
 echo "✓ verifier.sol generated"
 echo ""
 
-echo "Step 5: Copying verifier to contracts..."
+echo "Step 6: Copying verifier to contracts..."
 cp verifier.sol ../contracts/
 cd ..
 echo ""
 
-echo "Step 6: Building with Forge..."
+echo "Step 7: Building with Forge..."
 forge build
 if [ $? -ne 0 ]; then
   echo "ERROR: forge build failed"
@@ -73,7 +112,7 @@ fi
 echo "✓ Forge build successful"
 echo ""
 
-echo "Step 7: Deploying Verifier contract..."
+echo "Step 8: Deploying Verifier contract..."
 verifier_output=$(forge create contracts/verifier.sol:Verifier \
   --broadcast \
   --private-key $priv1 \
@@ -88,7 +127,7 @@ fi
 echo "✓ Verifier deployed: $verifier"
 echo ""
 
-echo "Step 8: Deploying AccessAddr contract..."
+echo "Step 9: Deploying AccessAddr contract..."
 access_output=$(forge create contracts/AccessAddr.sol:AccessAddr \
   --constructor-args $verifier \
   --broadcast \
@@ -104,7 +143,7 @@ fi
 echo "✓ AccessAddr deployed: $access"
 echo ""
 
-echo "Step 9: Testing contract functions..."
+echo "Step 10: Testing contract functions..."
 
 echo "Test 1: totalAccesses"
 total=$(cast call $access "totalAccesses()(uint256)" --rpc-url $RPC_URL)

@@ -1,14 +1,6 @@
-ADDR = 0xfFAebd194b3F1e0989f22BaAb130F9C4D7236504
-SECRET = CHANGE_ME
-
-.PHONY: all compute verify clean help
+.PHONY: all verify clean help
 
 all: verify
-
-compute:
-	zokrates compile -i ComputePwdAddr.zok -o compute.out
-	zokrates compute-witness -i compute.out -a $(ADDR) $(SECRET) --verbose
-	zokrates inspect -a witness
 
 verify:
 	zokrates compile -i VerifyPwdAddr.zok -o verify.out
