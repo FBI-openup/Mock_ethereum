@@ -129,8 +129,9 @@ echo ""
 
 echo "Step 8: Deploying Verifier contract..."
 verifier_output=$(forge create contracts/verifier.sol:Verifier \
-  --broadcast \
-  --private-key $priv1 2>&1)
+  --rpc-url $ETH_RPC_URL \
+  --private-key $priv1 \
+  --broadcast 2>&1)
 
 verifier=$(echo "$verifier_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$verifier" ]; then
@@ -143,10 +144,10 @@ echo ""
 
 echo "Step 9: Deploying AccessAddr contract..."
 access_output=$(forge create contracts/AccessAddr.sol:AccessAddr \
-  --constructor-args $verifier \
-  --broadcast \
   --rpc-url $ETH_RPC_URL \
-  --private-key $priv1 2>&1)
+  --private-key $priv1 \
+  --constructor-args $verifier \
+  --broadcast 2>&1)
 
 access=$(echo "$access_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$access" ]; then
