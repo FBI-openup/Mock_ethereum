@@ -72,8 +72,8 @@ fi
 echo "✓ Compile successful"
 echo ""
 
-echo "Computing witness..."
-zokrates compute-witness -i compute.out -a $addr_u32 $secret_u32 --verbose
+echo "Computing witness (this may take a minute)..."
+zokrates compute-witness -i compute.out -a $addr_u32 $secret_u32
 if [ $? -ne 0 ]; then
   echo "ERROR: compute-witness failed"
   exit 1
@@ -128,10 +128,10 @@ echo "✓ Forge build successful"
 echo ""
 
 echo "Step 8: Deploying Verifier contract..."
-verifier_output=$(forge create contracts/verifier.sol:Verifier \
+verifier_output=$(forge create --broadcast \
   --rpc-url $ETH_RPC_URL \
   --private-key $priv1 \
-  --broadcast 2>&1)
+  contracts/verifier.sol:Verifier 2>&1)
 
 verifier=$(echo "$verifier_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$verifier" ]; then
@@ -143,11 +143,11 @@ echo "✓ Verifier deployed: $verifier"
 echo ""
 
 echo "Step 9: Deploying AccessAddr contract..."
-access_output=$(forge create contracts/AccessAddr.sol:AccessAddr \
+access_output=$(forge create --broadcast \
   --rpc-url $ETH_RPC_URL \
   --private-key $priv1 \
   --constructor-args $verifier \
-  --broadcast 2>&1)
+  contracts/AccessAddr.sol:AccessAddr 2>&1)
 
 access=$(echo "$access_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$access" ]; then
