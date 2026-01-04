@@ -46,6 +46,21 @@ EOF
 echo "Address as u32[8]: $addr_u32"
 echo ""
 
+echo "Converting SECRET to u32 array..."
+secret_u32=$(python3 << EOF
+secret = "$SECRET"
+secret_int = int(secret, 16)
+B = 2**32
+result = []
+for i in range(8):
+    result.append(str(secret_int % B))
+    secret_int = secret_int // B
+print(" ".join(result))
+EOF
+)
+echo "SECRET as u32[8]: $secret_u32"
+echo ""
+
 echo "Step 5: Testing Zokrates..."
 cd zokrates
 echo "Compiling ComputePwdAddr..."
@@ -58,7 +73,7 @@ echo "✓ Compile successful"
 echo ""
 
 echo "Computing witness..."
-zokrates compute-witness -i compute.out -a $addr_u32 $SECRET --verbose
+zokrates compute-witness -i compute.out -a $addr_u32 $secret_u32 --verbose
 if [ $? -ne 0 ]; then
   echo "ERROR: compute-witness failed"
   exit 1
