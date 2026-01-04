@@ -1,0 +1,13 @@
+src/
+lib/
+out/
+cache/
+*.out
+witness
+proof.json
+verification.key
+proving.key
+verifier.sol
+abi.json
+deployed_*.txt
+broadcast/

@@ -1,0 +1,15 @@
+import "hashes/sha256/512bit" as sha512bit;
+import "hashes/sha256/256bitPadded.zok" as sha256bit;
+
+def main(u32[8] addr, u32[8] h, u32[8] hsa, private u32[8] s) -> () {
+  u32[8] hs_computed = sha256bit(s);
+  
+  u32[8] hsa_computed = sha512bit(s, addr);
+  
+  u32[8] h_computed = sha512bit(hs_computed, hsa_computed);
+  
+  assert(hsa_computed == hsa);
+  assert(h_computed == h);
+  
+  return;
+}

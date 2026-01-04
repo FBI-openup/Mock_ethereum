@@ -1,0 +1,12 @@
+import "hashes/sha256/512bit" as sha512bit;
+import "hashes/sha256/256bitPadded.zok" as sha256bit;
+
+def main(u32[8] addr, u32[8] s) -> (u32[8], u32[8], u32[8], u32[8]) {
+  u32[8] hs = sha256bit(s);
+
+  u32[8] hsa = sha512bit( s, addr);
+
+  u32[8] h = sha512bit( hs, hsa);
+
+  return (addr, h, hsa, s);
+}
