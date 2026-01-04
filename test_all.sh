@@ -5,12 +5,12 @@ echo "ZK Access Control - Complete Test Script"
 echo "========================================="
 echo ""
 
-RPC_URL="http://129.104.49.37:8545"
+ETH_RPC_URL="http://129.104.49.37:8545"
 priv1=0x22fb47a1e41741361bbb3f60ef0489ee53d7f2ce4985c1fb4d16abfaa00e866e
 addr1=0xfFAebd194b3F1e0989f22BaAb130F9C4D7236504
 
 echo "Step 1: Testing RPC connection..."
-cast block-number --rpc-url $RPC_URL
+cast block-number --rpc-url $ETH_RPC_URL
 if [ $? -ne 0 ]; then
   echo "ERROR: Cannot connect to RPC"
   exit 1
@@ -19,7 +19,7 @@ echo "✓ RPC connection OK"
 echo ""
 
 echo "Step 2: Checking account balance..."
-balance=$(cast balance $addr1 --rpc-url $RPC_URL)
+balance=$(cast balance $addr1 --rpc-url $ETH_RPC_URL)
 echo "Balance: $balance Wei"
 if [ "$balance" == "0" ]; then
   echo "WARNING: Account has no balance"
@@ -130,8 +130,7 @@ echo ""
 echo "Step 8: Deploying Verifier contract..."
 verifier_output=$(forge create contracts/verifier.sol:Verifier \
   --broadcast \
-  --private-key $priv1 \
-  --rpc-url $RPC_URL 2>&1)
+  --private-key $priv1 2>&1)
 
 verifier=$(echo "$verifier_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$verifier" ]; then
@@ -146,8 +145,7 @@ echo "Step 9: Deploying AccessAddr contract..."
 access_output=$(forge create contracts/AccessAddr.sol:AccessAddr \
   --constructor-args $verifier \
   --broadcast \
-  --private-key $priv1 \
-  --rpc-url $RPC_URL 2>&1)
+  --private-key $priv1 2>&1)
 
 access=$(echo "$access_output" | grep "Deployed to:" | awk '{print $3}')
 if [ -z "$access" ]; then
@@ -161,15 +159,15 @@ echo ""
 echo "Step 10: Testing contract functions..."
 
 echo "Test 1: totalAccesses"
-total=$(cast call $access "totalAccesses()(uint256)" --rpc-url $RPC_URL)
+total=$(cast call $access "totalAccesses()(uint256)" --rpc-url $ETH_RPC_URL)
 echo "Total accesses: $total"
 
 echo "Test 2: verifier address"
-verifier_check=$(cast call $access "verifier()(address)" --rpc-url $RPC_URL)
+verifier_check=$(cast call $access "verifier()(address)" --rpc-url $ETH_RPC_URL)
 echo "Verifier address: $verifier_check"
 
 echo "Test 3: getBalance"
-balance_check=$(cast call $access "getBalance(address)(uint256)" $addr1 --rpc-url $RPC_URL)
+balance_check=$(cast call $access "getBalance(address)(uint256)" $addr1 --rpc-url $ETH_RPC_URL)
 echo "Balance for $addr1: $balance_check"
 echo ""
 
